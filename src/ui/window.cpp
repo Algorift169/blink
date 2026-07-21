@@ -92,8 +92,15 @@ BlinkWindow::BlinkWindow(GtkApplication* app) : app_(app) {
     gtk_window_set_title(window_, "Blink");
     gtk_window_set_default_size(window_, 800, 500);
     gtk_window_set_resizable(window_, TRUE);
-    gtk_window_set_decorated(window_, FALSE);
     gtk_window_set_keep_above(window_, FALSE);
+    GdkScreen* screen = gtk_widget_get_screen(GTK_WIDGET(window_));
+    if (gdk_screen_is_composited(screen)) {
+        GdkVisual* visual = gdk_screen_get_rgba_visual(screen);
+        if (visual != nullptr) {
+            gtk_widget_set_visual(GTK_WIDGET(window_), visual);
+        }
+    }
+    gtk_widget_set_app_paintable(GTK_WIDGET(window_), TRUE);
     GdkGeometry hints{};
     hints.min_width = 100;
     hints.min_height = 80;
