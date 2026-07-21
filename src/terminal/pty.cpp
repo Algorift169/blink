@@ -1,5 +1,6 @@
 #include <array>
 #include <cerrno>
+#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
@@ -50,10 +51,16 @@ bool PtySession::start() {
     }
 
     if (pid == 0) {
+        if (chdir("/home/usr/") != 0) {
+            const char* home_directory = std::getenv("HOME");
+            if (home_directory == nullptr || chdir(home_directory) != 0) {
+                _exit(127);
+            }
+        }
         setenv("TERM", "xterm-256color", 1);
         setenv("SHELL", shell_path_.c_str(), 1);
-        setenv("PS1", "\\[\\e[34m\\]\\u@\\h\\[\\e[0m\\] : \\[\\e[33m\\]\\w\\[\\e[0m\\] \\[\\e[31m\\]$(if [ \"$EUID\" -eq 0 ]; then echo '&'; else echo '\\$'; fi)\\[\\e[0m\\] ", 1);
-        setenv("PROMPT_COMMAND", "PS1='\\[\\e[34m\\]\\u@\\h\\[\\e[0m\\] : \\[\\e[33m\\]\\w\\[\\e[0m\\] \\[\\e[31m\\]$(if [ \"$EUID\" -eq 0 ]; then echo '&'; else echo '\\$'; fi)\\[\\e[0m\\] '", 1);
+        setenv("PS1", "\\[\\e[1;32m\\]\\u@\\h\\[\\e[1;33m\\]:\\w\\[\\e[1;31m\\]$(if [ \"$EUID\" -eq 0 ]; then echo '&'; else echo '\\$'; fi)\\[\\e[0m\\] ", 1);
+        setenv("PROMPT_COMMAND", "PS1='\\[\\e[1;32m\\]\\u@\\h\\[\\e[1;33m\\]:\\w\\[\\e[1;31m\\]$(if [ \"$EUID\" -eq 0 ]; then echo '&'; else echo '\\$'; fi)\\[\\e[0m\\] '", 1);
         setenv("PS2", "> ", 1);
         setenv("LANG", "C.UTF-8", 1);
         setenv("LC_ALL", "C.UTF-8", 1);
@@ -65,7 +72,7 @@ bool PtySession::start() {
         if (std::strcmp(shell_name, "bash") == 0) {
             execl(shell_path_.c_str(), shell_name, "--noprofile", "--norc", "-i", nullptr);
         } else if (std::strcmp(shell_name, "zsh") == 0) {
-            setenv("PS1", "%F{blue}%n@%m%f : %F{yellow}%~%f %(!.%F{red}&.%f:%F{red}$%f) ", 1);
+            setenv("PS1", "%B%F{green}%n@%m%f:%F{yellow}%~%f%(!.%F{red}&.%f%F{red}$%f)%b ", 1);
             execl(shell_path_.c_str(), shell_name, "-f", "-i", nullptr);
         } else {
             execl(shell_path_.c_str(), shell_name, "-i", nullptr);
@@ -80,7 +87,7 @@ bool PtySession::start() {
 
 std::string normalize_prompt_output(const std::string& text) {
     static const std::regex prompt_re(R"((^|\n)(?:\x1B\[[0-9;]*m)*([^@\n]+)@([^:\n]+): ?([^\n#$]+?)([$#]) ?)");
-    static const std::string replacement = "$1\033[34m$2@$3\033[0m : \033[33m$4\033[0m \033[31m$5\033[0m ";
+    static const std::string replacement = "$1\033[1;32m$2@$3\033[1;33m:\033[1;33m$4\033[1;31m$5\033[0m ";
     return std::regex_replace(text, prompt_re, replacement);
 }
 

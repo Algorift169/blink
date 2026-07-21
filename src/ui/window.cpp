@@ -106,12 +106,14 @@ BlinkWindow::BlinkWindow(GtkApplication* app) : app_(app) {
     hints.min_height = 80;
     gtk_window_set_geometry_hints(window_, GTK_WIDGET(window_), &hints, GDK_HINT_MIN_SIZE);
     gtk_widget_add_events(GTK_WIDGET(window_), GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_BUTTON_MOTION_MASK | GDK_POINTER_MOTION_MASK);
-    g_signal_connect(GTK_WIDGET(window_), "button-press-event", G_CALLBACK(on_window_button_press), window_);
 
     terminal_widget_ = std::make_unique<blink::terminal::TerminalWidget>();
 
     setup_window_decorations();
     apply_css();
+
+    gtk_widget_add_events(GTK_WIDGET(window_), GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_BUTTON_MOTION_MASK | GDK_POINTER_MOTION_MASK);
+    g_signal_connect(GTK_WIDGET(window_), "button-press-event", G_CALLBACK(on_window_button_press), window_);
 
     terminal_widget_->start_shell();
 }
@@ -126,10 +128,20 @@ void BlinkWindow::create_title_bar() {
     auto* main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_widget_set_name(main_box, "blink-container");
 
+    auto* titlebar_container = gtk_event_box_new();
+    gtk_widget_set_name(titlebar_container, "blink-titlebar");
+    gtk_widget_set_size_request(titlebar_container, -1, 28);
+    gtk_widget_set_hexpand(titlebar_container, TRUE);
+    gtk_widget_set_halign(titlebar_container, GTK_ALIGN_FILL);
+    gtk_event_box_set_visible_window(GTK_EVENT_BOX(titlebar_container), TRUE);
+    gtk_event_box_set_above_child(GTK_EVENT_BOX(titlebar_container), FALSE);
+    gtk_widget_add_events(titlebar_container, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_POINTER_MOTION_MASK);
+
     title_bar_ = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
-    gtk_widget_set_name(GTK_WIDGET(title_bar_), "blink-titlebar");
+    gtk_widget_set_name(GTK_WIDGET(title_bar_), "blink-titlebar-inner");
     gtk_widget_set_size_request(GTK_WIDGET(title_bar_), -1, 28);
     gtk_box_set_homogeneous(title_bar_, FALSE);
+    gtk_widget_add_events(GTK_WIDGET(title_bar_), GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_POINTER_MOTION_MASK);
     
     auto* left_spacer = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_size_request(left_spacer, 50, -1);
@@ -139,6 +151,8 @@ void BlinkWindow::create_title_bar() {
     gtk_widget_set_name(title_label, "blink-title");
     gtk_label_set_xalign(GTK_LABEL(title_label), 0.5);
     gtk_widget_set_hexpand(title_label, TRUE);
+    gtk_widget_add_events(title_label, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_POINTER_MOTION_MASK);
+    g_signal_connect(title_label, "button-press-event", G_CALLBACK(on_window_button_press), window_);
     gtk_box_pack_start(title_bar_, title_label, TRUE, TRUE, 0);
     
     auto* right_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
@@ -147,36 +161,40 @@ void BlinkWindow::create_title_bar() {
     
     auto* minimize_btn = gtk_button_new();
     gtk_widget_set_name(minimize_btn, "minimize-button");
-    gtk_widget_set_size_request(minimize_btn, 5, 5);
+    gtk_widget_set_size_request(minimize_btn, 10, 10);
     gtk_button_set_relief(GTK_BUTTON(minimize_btn), GTK_RELIEF_NONE);
     g_signal_connect(minimize_btn, "clicked", G_CALLBACK(on_minimize_clicked), window_);
     gtk_box_pack_start(GTK_BOX(right_box), minimize_btn, FALSE, FALSE, 0);
 
     auto* maximize_btn = gtk_button_new();
     gtk_widget_set_name(maximize_btn, "maximize-button");
-    gtk_widget_set_size_request(maximize_btn, 5, 5);
+    gtk_widget_set_size_request(maximize_btn, 10, 10);
     gtk_button_set_relief(GTK_BUTTON(maximize_btn), GTK_RELIEF_NONE);
     g_signal_connect(maximize_btn, "clicked", G_CALLBACK(on_maximize_clicked), window_);
     gtk_box_pack_start(GTK_BOX(right_box), maximize_btn, FALSE, FALSE, 0);
 
     auto* close_btn = gtk_button_new();
     gtk_widget_set_name(close_btn, "close-button");
-    gtk_widget_set_size_request(close_btn, 5, 5);
+    gtk_widget_set_size_request(close_btn, 10, 10);
     gtk_button_set_relief(GTK_BUTTON(close_btn), GTK_RELIEF_NONE);
     g_signal_connect(close_btn, "clicked", G_CALLBACK(on_close_clicked), window_);
     gtk_box_pack_start(GTK_BOX(right_box), close_btn, FALSE, FALSE, 0);
     
     gtk_box_pack_end(title_bar_, right_box, FALSE, FALSE, 0);
     
-    gtk_box_pack_start(GTK_BOX(main_box), GTK_WIDGET(title_bar_), FALSE, FALSE, 0);
-    
+    gtk_container_add(GTK_CONTAINER(titlebar_container), GTK_WIDGET(title_bar_));
+    g_signal_connect(titlebar_container, "button-press-event", G_CALLBACK(on_window_button_press), window_);
+    g_signal_connect(GTK_WIDGET(title_bar_), "button-press-event", G_CALLBACK(on_window_button_press), window_);
+
     auto* terminal_container = terminal_widget_->widget();
     gtk_widget_set_name(terminal_container, "blink-terminal");
     gtk_widget_set_hexpand(terminal_container, TRUE);
     gtk_widget_set_vexpand(terminal_container, TRUE);
+    gtk_box_pack_start(GTK_BOX(main_box), titlebar_container, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(main_box), terminal_container, TRUE, TRUE, 0);
-    
+
     gtk_container_add(GTK_CONTAINER(window_), main_box);
+    
     gtk_widget_show_all(GTK_WIDGET(window_));
 }
 

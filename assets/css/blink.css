@@ -1,5 +1,5 @@
 window {
-    background-color: transparent;
+    background-color: #1F1F1F;
     color: #D9D9D9;
     font-family: "SF Pro Display", Inter, "Segoe UI", Sans;
     border: 1px solid #333333;
@@ -15,7 +15,7 @@ window {
 }
 
 #blink-titlebar {
-    background-color: #1C1C1E;
+    background-color: #4A4A4A;
     color: #D9D9D9;
     font-family: "SF Pro Display", Inter, "Segoe UI", Sans;
     font-size: 12px;
