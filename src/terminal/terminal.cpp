@@ -5,6 +5,7 @@
 #include <gtk/gtk.h>
 #include <vte/vte.h>
 
+#include "blink/terminal/input.hpp"
 #include "blink/terminal/terminal.hpp"
 
 namespace blink::terminal {
@@ -110,10 +111,9 @@ void TerminalWidget::resize_to_widget() {
 
 gboolean TerminalWidget::on_key_press(GtkWidget* widget, GdkEvent* event, gpointer data) {
     auto* self = static_cast<TerminalWidget*>(data);
-    guint keyval = 0;
-    GdkModifierType state = static_cast<GdkModifierType>(0);
-    gdk_event_get_keyval(event, &keyval);
-    gdk_event_get_state(event, &state);
+    auto* key_event = reinterpret_cast<GdkEventKey*>(event);
+    const guint keyval = key_event->keyval;
+    const auto state = static_cast<GdkModifierType>(key_event->state);
 
     if ((state & GDK_CONTROL_MASK) != 0 && (state & GDK_SHIFT_MASK) != 0 && keyval == GDK_KEY_c) {
         self->copy_selection();
@@ -125,55 +125,9 @@ gboolean TerminalWidget::on_key_press(GtkWidget* widget, GdkEvent* event, gpoint
         return TRUE;
     }
 
-    if (keyval == GDK_KEY_Return || keyval == GDK_KEY_KP_Enter) {
-        self->send_to_child("\r", 1);
-        return TRUE;
-    }
-
-    if (keyval == GDK_KEY_Tab) {
-        self->send_to_child("\t", 1);
-        return TRUE;
-    }
-
-    if (keyval == GDK_KEY_BackSpace) {
-        self->send_to_child("\x7f", 1);
-        return TRUE;
-    }
-
-    if (keyval == GDK_KEY_Escape) {
-        self->send_to_child("\x1b", 1);
-        return TRUE;
-    }
-
-    if (keyval == GDK_KEY_Up) {
-        self->send_to_child("\x1b[A", 3);
-        return TRUE;
-    }
-
-    if (keyval == GDK_KEY_Down) {
-        self->send_to_child("\x1b[B", 3);
-        return TRUE;
-    }
-
-    if (keyval == GDK_KEY_Right) {
-        self->send_to_child("\x1b[C", 3);
-        return TRUE;
-    }
-
-    if (keyval == GDK_KEY_Left) {
-        self->send_to_child("\x1b[D", 3);
-        return TRUE;
-    }
-
-    if (keyval == GDK_KEY_Delete) {
-        self->send_to_child("\x1b[3~", 4);
-        return TRUE;
-    }
-
-    if (keyval >= 32 && keyval < 127) {
-        gchar utf8[8]{};
-        const auto length = g_unichar_to_utf8(gdk_keyval_to_unicode(keyval), utf8);
-        self->send_to_child(utf8, static_cast<std::size_t>(length));
+    const auto sequence = encode_key_event(key_event);
+    if (!sequence.empty()) {
+        self->send_to_child(sequence.data(), sequence.size());
         return TRUE;
     }
 

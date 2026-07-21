@@ -22,6 +22,7 @@ SRCS := \
 	src/search/regex.cpp \
 	src/search/search.cpp \
 	src/terminal/pty.cpp \
+	src/terminal/input.cpp \
 	src/terminal/renderer.cpp \
 	src/terminal/scrollback.cpp \
 	src/terminal/session.cpp \
