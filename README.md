@@ -2,6 +2,10 @@
 
 Blink is a lightweight terminal application built with GTK and VTE. It provides a custom window frame, rounded corners, and an interactive shell experience.
 
+## V1 Preview
+
+![Blink V1](assets/others/view-v1.png)
+
 ## Features
 
 - Custom UI window with rounded corners and a compact title bar.
@@ -19,6 +23,16 @@ Blink is a lightweight terminal application built with GTK and VTE. It provides 
 
 ```bash
 ./scripts/deps.sh
+```
+
+## Install V1 Release
+
+```bash
+wget https://github.com/Algorift169/blink/releases/download/v1.0.0/blink-v1.0.tar.gz && \
+tar -xzf blink-v1.0.tar.gz && \
+cd blink-v1.0 && \
+chmod +x install.sh && \
+./install.sh
 ```
 
 ## Build
