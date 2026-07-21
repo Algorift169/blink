@@ -55,7 +55,6 @@ bool PtySession::start() {
         setenv("PS1", "\\[\\e[34m\\]\\u@\\h\\[\\e[0m\\] : \\[\\e[33m\\]\\w\\[\\e[0m\\] \\[\\e[31m\\]$(if [ \"$EUID\" -eq 0 ]; then echo '&'; else echo '\\$'; fi)\\[\\e[0m\\] ", 1);
         setenv("PROMPT_COMMAND", "PS1='\\[\\e[34m\\]\\u@\\h\\[\\e[0m\\] : \\[\\e[33m\\]\\w\\[\\e[0m\\] \\[\\e[31m\\]$(if [ \"$EUID\" -eq 0 ]; then echo '&'; else echo '\\$'; fi)\\[\\e[0m\\] '", 1);
         setenv("PS2", "> ", 1);
-        setenv("PROMPT", "%F{blue}%n@%m%f : %F{yellow}%~%f %(!%F{red}&%f:%F{red}$%f) ", 1);
         setenv("LANG", "C.UTF-8", 1);
         setenv("LC_ALL", "C.UTF-8", 1);
         unsetenv("BASH_ENV");
@@ -66,6 +65,7 @@ bool PtySession::start() {
         if (std::strcmp(shell_name, "bash") == 0) {
             execl(shell_path_.c_str(), shell_name, "--noprofile", "--norc", "-i", nullptr);
         } else if (std::strcmp(shell_name, "zsh") == 0) {
+            setenv("PS1", "%F{blue}%n@%m%f : %F{yellow}%~%f %(!.%F{red}&.%f:%F{red}$%f) ", 1);
             execl(shell_path_.c_str(), shell_name, "-f", "-i", nullptr);
         } else {
             execl(shell_path_.c_str(), shell_name, "-i", nullptr);
