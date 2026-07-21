@@ -7,17 +7,62 @@ namespace blink::ui {
 
 namespace {
 
-gboolean on_window_button_press(GtkWidget* widget __attribute__((unused)), GdkEvent* event, gpointer user_data) {
+GdkWindowEdge get_edge_for_position(GtkWidget* widget, GdkEventButton* event) {
+    int width = gtk_widget_get_allocated_width(widget);
+    int height = gtk_widget_get_allocated_height(widget);
+    const int edge_size = 10;
+    const bool left = event->x <= edge_size;
+    const bool right = event->x >= width - edge_size;
+    const bool top = event->y <= edge_size;
+    const bool bottom = event->y >= height - edge_size;
+
+    if (top && left) {
+        return GDK_WINDOW_EDGE_NORTH_WEST;
+    }
+    if (top && right) {
+        return GDK_WINDOW_EDGE_NORTH_EAST;
+    }
+    if (bottom && left) {
+        return GDK_WINDOW_EDGE_SOUTH_WEST;
+    }
+    if (bottom && right) {
+        return GDK_WINDOW_EDGE_SOUTH_EAST;
+    }
+    if (left) {
+        return GDK_WINDOW_EDGE_WEST;
+    }
+    if (right) {
+        return GDK_WINDOW_EDGE_EAST;
+    }
+    if (top) {
+        return GDK_WINDOW_EDGE_NORTH;
+    }
+    if (bottom) {
+        return GDK_WINDOW_EDGE_SOUTH;
+    }
+    return GDK_WINDOW_EDGE_NORTH;
+}
+
+gboolean on_window_button_press(GtkWidget* widget, GdkEvent* event, gpointer user_data) {
     auto* window = static_cast<GtkWindow*>(user_data);
     GdkEventButton* button_event = reinterpret_cast<GdkEventButton*>(event);
-    
-    
-    if (button_event->type == GDK_BUTTON_PRESS && button_event->button == 1 && button_event->y < 28) {
-        if (button_event->x > 50) {  
-            gtk_window_begin_move_drag(window, 1, button_event->x_root, button_event->y_root, button_event->time);
-            return TRUE;
-        }
+
+    if (button_event->type != GDK_BUTTON_PRESS || button_event->button != 1) {
+        return FALSE;
     }
+
+    if (button_event->y < 28 && button_event->x > 50 && button_event->x < gtk_widget_get_allocated_width(widget) - 50) {
+        gtk_window_begin_move_drag(window, 1, button_event->x_root, button_event->y_root, button_event->time);
+        return TRUE;
+    }
+
+    const int border_threshold = 10;
+    if (button_event->x <= border_threshold || button_event->x >= gtk_widget_get_allocated_width(widget) - border_threshold ||
+        button_event->y <= border_threshold || button_event->y >= gtk_widget_get_allocated_height(widget) - border_threshold) {
+        gtk_window_begin_resize_drag(window, get_edge_for_position(widget, button_event), 1, button_event->x_root, button_event->y_root, button_event->time);
+        return TRUE;
+    }
+
     return FALSE;
 }
 
@@ -49,7 +94,11 @@ BlinkWindow::BlinkWindow(GtkApplication* app) : app_(app) {
     gtk_window_set_resizable(window_, TRUE);
     gtk_window_set_decorated(window_, FALSE);
     gtk_window_set_keep_above(window_, FALSE);
-    gtk_widget_add_events(GTK_WIDGET(window_), GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_BUTTON_MOTION_MASK);
+    GdkGeometry hints{};
+    hints.min_width = 100;
+    hints.min_height = 80;
+    gtk_window_set_geometry_hints(window_, GTK_WIDGET(window_), &hints, GDK_HINT_MIN_SIZE);
+    gtk_widget_add_events(GTK_WIDGET(window_), GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_BUTTON_MOTION_MASK | GDK_POINTER_MOTION_MASK);
     g_signal_connect(GTK_WIDGET(window_), "button-press-event", G_CALLBACK(on_window_button_press), window_);
 
     terminal_widget_ = std::make_unique<blink::terminal::TerminalWidget>();

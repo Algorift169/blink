@@ -52,7 +52,6 @@ void TerminalWidget::initialize() {
     container_ = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     terminal_ = VTE_TERMINAL(vte_terminal_new());
     gtk_widget_set_name(GTK_WIDGET(terminal_), "blink-terminal");
-    gtk_widget_set_size_request(GTK_WIDGET(terminal_), 800, 500);
     gtk_widget_set_hexpand(GTK_WIDGET(terminal_), TRUE);
     gtk_widget_set_vexpand(GTK_WIDGET(terminal_), TRUE);
     gtk_widget_set_can_focus(GTK_WIDGET(terminal_), TRUE);
