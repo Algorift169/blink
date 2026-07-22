@@ -17,8 +17,10 @@ LDLIBS += $(GTK_LIBS) $(VTE_LIBS)
 SRCS := \
 	src/main.cpp \
 	src/app/app.cpp \
+	src/clipboard/actions.cpp \
 	src/clipboard/clipboard.cpp \
 	src/clipboard/history.cpp \
+	src/menu/context_menu.cpp \
 	src/search/regex.cpp \
 	src/search/search.cpp \
 	src/terminal/pty.cpp \

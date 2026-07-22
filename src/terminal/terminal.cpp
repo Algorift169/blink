@@ -5,6 +5,8 @@
 #include <gtk/gtk.h>
 #include <vte/vte.h>
 
+#include "blink/clipboard/actions.hpp"
+#include "blink/menu/context_menu.hpp"
 #include "blink/terminal/input.hpp"
 #include "blink/terminal/terminal.hpp"
 
@@ -64,6 +66,9 @@ void TerminalWidget::initialize() {
 
     g_signal_connect(terminal_, "size-allocate", G_CALLBACK(on_size_allocate), this);
     g_signal_connect(terminal_, "key-press-event", G_CALLBACK(on_key_press), this);
+    g_signal_connect(terminal_, "commit", G_CALLBACK(on_commit), this);
+    gtk_widget_add_events(GTK_WIDGET(terminal_), GDK_BUTTON_PRESS_MASK);
+    g_signal_connect(terminal_, "button-press-event", G_CALLBACK(on_button_press), this);
 
     gtk_container_add(GTK_CONTAINER(container_), GTK_WIDGET(terminal_));
 }
@@ -79,15 +84,16 @@ void TerminalWidget::send_to_child(const char* data, std::size_t size) {
 }
 
 void TerminalWidget::copy_selection() {
-    if (terminal_ != nullptr) {
-        vte_terminal_copy_clipboard(terminal_);
-    }
+    blink::clipboard::copy_selection(terminal_);
 }
 
 void TerminalWidget::paste_from_clipboard() {
-    if (terminal_ != nullptr) {
-        vte_terminal_paste_clipboard(terminal_);
-    }
+    blink::clipboard::paste(terminal_);
+}
+
+void TerminalWidget::show_context_menu(GdkEventButton* event) {
+    auto* menu = blink::menu::create_terminal_context_menu(terminal_);
+    gtk_menu_popup_at_pointer(GTK_MENU(menu), reinterpret_cast<GdkEvent*>(event));
 }
 
 void TerminalWidget::resize_to_widget() {
@@ -133,6 +139,28 @@ gboolean TerminalWidget::on_key_press(GtkWidget* widget, GdkEvent* event, gpoint
 
     (void)widget;
     return FALSE;
+}
+
+gboolean TerminalWidget::on_button_press(GtkWidget* widget, GdkEvent* event, gpointer data) {
+    auto* self = static_cast<TerminalWidget*>(data);
+    auto* button_event = reinterpret_cast<GdkEventButton*>(event);
+    if (button_event->type == GDK_BUTTON_PRESS && button_event->button == 3) {
+        self->show_context_menu(button_event);
+        return TRUE;
+    }
+
+    (void)widget;
+    return FALSE;
+}
+
+void TerminalWidget::on_commit(VteTerminal* terminal, const gchar* text,
+                               guint size, gpointer data) {
+    auto* self = static_cast<TerminalWidget*>(data);
+    if (terminal != self->terminal_ || text == nullptr || size == 0) {
+        return;
+    }
+
+    self->send_to_child(text, size);
 }
 
 void TerminalWidget::on_size_allocate(GtkWidget* widget, GtkAllocation* allocation, gpointer data) {

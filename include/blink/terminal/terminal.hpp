@@ -21,6 +21,9 @@ public:
 
 private:
     static gboolean on_key_press(GtkWidget* widget, GdkEvent* event, gpointer data);
+    static gboolean on_button_press(GtkWidget* widget, GdkEvent* event, gpointer data);
+    static void on_commit(VteTerminal* terminal, const gchar* text, guint size,
+                          gpointer data);
     static void on_size_allocate(GtkWidget* widget, GtkAllocation* allocation, gpointer data);
 
     void initialize();
@@ -28,6 +31,7 @@ private:
     void send_to_child(const char* data, std::size_t size);
     void copy_selection();
     void paste_from_clipboard();
+    void show_context_menu(GdkEventButton* event);
     void resize_to_widget();
 
     GtkWidget* container_{nullptr};
