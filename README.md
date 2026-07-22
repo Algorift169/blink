@@ -1,57 +1,31 @@
-# Blink
+# Blink web
 
-Blink is a lightweight terminal application built with GTK and VTE. It provides a custom window frame, rounded corners, and an interactive shell experience.
+Static project site for Blink Terminal Emulator.
 
-## V1 Preview
+## Run locally
 
-![Blink V1](assets/others/view-v1.png)
-
-## Features
-
-- Custom UI window with rounded corners and a compact title bar.
-- Shell launching in a PTY-backed terminal.
-- Basic clipboard, search, and utility helpers.
-
-## Requirements
-
-- GCC or Clang with C++20 support.
-- GTK 3 development files.
-- VTE 2.91 development files.
-- pkg-config and make.
-
-## Install dependencies
+From this directory:
 
 ```bash
-./scripts/deps.sh
+python3 -m http.server 8080
 ```
 
-## Install V1 Release
+Then visit `http://localhost:8080`.
+
+The site uses one shared stylesheet and vanilla JavaScript. Installation tabs and copy buttons run in the browser; community notes are stored locally with `localStorage` and are not sent to a server.
+
+## Build & Publish (recommended)
+
+- Run `npm run build` to produce a minified production site in the `dist/` folder. The build bundles and minifies JavaScript, minifies CSS/HTML, and copies assets.
+- Publish only the contents of `dist/` to your static hosting provider (GitHub Pages, Netlify, Vercel, etc.). Do not publish the `web/` source folder — it contains human-readable sources and dev dependencies.
+- `package-lock.json` is included to lock dev tooling versions used for reproducible builds.
+
+To preview the production output locally:
 
 ```bash
-wget https://github.com/Algorift169/blink/releases/download/v1.0.0/blink-v1.0.tar.gz && \
-tar -xzf blink-v1.0.tar.gz && \
-cd blink-v1.0 && \
-chmod +x install.sh && \
-./install.sh
+cd web/dist
+python3 -m http.server 8080
+# then open http://localhost:8080
 ```
 
-## Build
-
-```bash
-make
-```
-
-## Run
-
-```bash
-./scripts/run.sh
-```
-
-## Documentation
-
-See the documentation in the docs directory:
-
-- docs/overview.md
-- docs/architecture.md
-- docs/development.md
-- docs/features.md
+This ensures users see only the minified production assets and not development source files.
