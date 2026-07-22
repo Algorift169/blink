@@ -1,9 +1,1 @@
-(() => {
-  const tabs = document.querySelectorAll('[data-install-tab]');
-  const panels = document.querySelectorAll('[data-install-panel]');
-  tabs.forEach((tab) => tab.addEventListener('click', () => {
-    const target = tab.dataset.installTab;
-    tabs.forEach((item) => { const active = item === tab; item.classList.toggle('active', active); item.setAttribute('aria-selected', String(active)); });
-    panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.installPanel === target));
-  }));
-})();
+(()=>{(()=>{let e=document.querySelectorAll("[data-install-tab]"),s=document.querySelectorAll("[data-install-panel]");e.forEach(a=>a.addEventListener("click",()=>{let c=a.dataset.installTab;e.forEach(t=>{let l=t===a;t.classList.toggle("active",l),t.setAttribute("aria-selected",String(l))}),s.forEach(t=>t.classList.toggle("active",t.dataset.installPanel===c))}))})();})();
