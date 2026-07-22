@@ -23,6 +23,7 @@ The right-click menu provides:
 
 - **Copy**: Copy the current terminal selection as text.
 - **Paste**: Paste the system clipboard into the terminal session.
+- **Select All**: Select all text currently held by the terminal.
 - **Zoom In**: Increase the terminal font scale by `0.1`.
 - **Zoom Out**: Decrease the terminal font scale by `0.1`.
 - **Zoom Reset**: Restore the default terminal font scale of `0.94`.

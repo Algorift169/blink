@@ -20,6 +20,10 @@ void on_paste(GtkMenuItem*, gpointer data) {
     blink::clipboard::paste(VTE_TERMINAL(data));
 }
 
+void on_select_all(GtkMenuItem*, gpointer data) {
+    blink::clipboard::select_all(VTE_TERMINAL(data));
+}
+
 void on_zoom_in(GtkMenuItem*, gpointer data) {
     auto* terminal = VTE_TERMINAL(data);
     const auto scale = std::min(kMaximumFontScale,
@@ -51,6 +55,7 @@ GtkWidget* create_terminal_context_menu(VteTerminal* terminal) {
     auto* menu = gtk_menu_new();
     add_item(menu, "Copy", G_CALLBACK(on_copy), terminal);
     add_item(menu, "Paste", G_CALLBACK(on_paste), terminal);
+    add_item(menu, "Select All", G_CALLBACK(on_select_all), terminal);
     gtk_menu_shell_append(GTK_MENU_SHELL(menu), gtk_separator_menu_item_new());
     add_item(menu, "Zoom In", G_CALLBACK(on_zoom_in), terminal);
     add_item(menu, "Zoom Out", G_CALLBACK(on_zoom_out), terminal);

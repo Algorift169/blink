@@ -14,4 +14,10 @@ void paste(VteTerminal* terminal) {
     }
 }
 
+void select_all(VteTerminal* terminal) {
+    if (terminal != nullptr) {
+        vte_terminal_select_all(terminal);
+    }
+}
+
 }
