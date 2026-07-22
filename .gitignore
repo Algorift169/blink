@@ -1,0 +1,3 @@
+# Ignore web directory locally (kept for VSCode, not GitHub)
+web/
+build/
